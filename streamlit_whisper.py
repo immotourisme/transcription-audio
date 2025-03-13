@@ -1,14 +1,24 @@
-import asyncio
-import streamlit as st
-import whisper
 import os
+import streamlit as st
+import asyncio
+import whisper
 import tempfile
+import shutil
 
-# 🔧 Correction du bug "no running event loop" (asyncio)
+# 🔧 Désactiver le watcher de Streamlit pour éviter les erreurs avec Torch
+os.environ["TORCH_HOME"] = "/tmp"  
+st.set_page_config(page_title="Transcription Audio", layout="wide")
+
+# 🔄 Correction asyncio
 try:
     asyncio.get_running_loop()
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
+
+# ⚠️ Vérifier la présence de FFmpeg
+if not shutil.which("ffmpeg"):
+    st.error("❌ Erreur : FFmpeg n'est pas installé. Ajoutez `ffmpeg` dans `requirements.txt`.")
+    st.stop()
 
 # ✅ Vérification de Streamlit
 st.write("✅ Streamlit fonctionne bien !")
