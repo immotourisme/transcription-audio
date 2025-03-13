@@ -5,22 +5,22 @@ import whisper
 import tempfile
 import shutil
 
-# 🔧 Désactiver le watcher de Streamlit pour éviter les erreurs avec Torch
+# 🔄 Désactiver torch.classes qui cause des erreurs sur Streamlit Cloud
 os.environ["TORCH_HOME"] = "/tmp"
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"  # Évite les erreurs GPU sur Mac
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 
-# 🔄 Correction asyncio
+# 🔄 Correction asyncio pour éviter "no running event loop"
 try:
     asyncio.get_running_loop()
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-# 🔧 Désactiver le mode debug de Streamlit
+# 🔧 Configuration de la page
 st.set_page_config(page_title="Transcription Audio", layout="wide")
 
-# ⚠️ Vérifier la présence de FFmpeg
+# 🎤 Vérification de FFmpeg
 if not shutil.which("ffmpeg"):
-    st.error("❌ Erreur : FFmpeg n'est pas installé. Ajoutez `ffmpeg` dans `requirements.txt`.")
+    st.error("❌ Erreur : FFmpeg n'est pas installé.")
     st.stop()
 
 # ✅ Vérification de Streamlit
@@ -29,7 +29,7 @@ st.write("✅ Streamlit fonctionne bien !")
 # 🚀 Chargement du modèle Whisper
 @st.cache_resource
 def load_model():
-    return whisper.load_model("tiny").to("cpu")  # Utilisation du modèle "tiny" pour éviter les problèmes de mémoire
+    return whisper.load_model("tiny").to("cpu")  # Modèle léger pour éviter les crashs
 
 # Charger le modèle
 model = load_model()
@@ -43,7 +43,7 @@ st.write("Déposez votre fichier audio pour obtenir une transcription en texte."
 uploaded_file = st.file_uploader("Choisissez un fichier audio (MP3, WAV, M4A, etc.)", type=["mp3", "wav", "m4a"])
 
 if uploaded_file is not None:
-    # 🔧 Création d'un fichier temporaire pour l'upload
+    # 🔧 Création d'un fichier temporaire
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
         temp_file.write(uploaded_file.getbuffer())
         file_path = temp_file.name
@@ -59,7 +59,7 @@ if uploaded_file is not None:
         st.subheader("📝 Résultat de la transcription :")
         st.text_area("Texte transcrit", transcription, height=300)
 
-        # 📥 Option pour télécharger la transcription
+        # 📥 Téléchargement du texte
         st.download_button(
             label="📥 Télécharger la transcription",
             data=transcription,
