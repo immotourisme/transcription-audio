@@ -2,12 +2,17 @@ import streamlit as st
 import whisper
 import os
 
-# Charger le modèle Whisper une seule fois (évite de le recharger à chaque transcription)
+# Test pour voir si Streamlit fonctionne avant le chargement du modèle
+st.write("✅ Streamlit fonctionne bien !")
+
 @st.cache_resource
 def load_model():
-    return whisper.load_model("medium")
+    return whisper.load_model("base").to("cpu")  # Force l'utilisation du CPU
 
+# Charger le modèle Whisper
 model = load_model()
+
+st.write("✅ Modèle Whisper chargé avec succès !")
 
 # Interface utilisateur Streamlit
 st.title("🎙️ Transcription Audio en Texte")
