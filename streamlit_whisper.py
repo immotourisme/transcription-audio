@@ -5,15 +5,14 @@ import whisper
 import tempfile
 import shutil
 
-# 🔄 Désactiver torch.classes qui cause des erreurs sur Streamlit Cloud
-os.environ["TORCH_HOME"] = "/tmp"
-os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+# 🔧 Correction asyncio pour éviter "RuntimeError: no running event loop"
+async def fix_asyncio():
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        asyncio.set_event_loop(asyncio.new_event_loop())
 
-# 🔄 Correction asyncio pour éviter "no running event loop"
-try:
-    asyncio.get_running_loop()
-except RuntimeError:
-    asyncio.set_event_loop(asyncio.new_event_loop())
+asyncio.run(fix_asyncio())
 
 # 🔧 Configuration de la page
 st.set_page_config(page_title="Transcription Audio", layout="wide")
@@ -29,7 +28,7 @@ st.write("✅ Streamlit fonctionne bien !")
 # 🚀 Chargement du modèle Whisper
 @st.cache_resource
 def load_model():
-    return whisper.load_model("tiny").to("cpu")  # Modèle léger pour éviter les crashs
+    return whisper.load_model("tiny").to("cpu")  # Utilisation du modèle Tiny pour éviter les crashs mémoire
 
 # Charger le modèle
 model = load_model()
