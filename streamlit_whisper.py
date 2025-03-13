@@ -34,11 +34,11 @@ def load_model():
 
 # Charger le modèle
 model = load_model()
-st.write("✅ Modèle Whisper chargé avec succès !")
+# st.write("✅ Modèle Whisper chargé avec succès !")
 
 # 🎙️ Interface utilisateur
-st.title("🎙️ Transcription Audio en Texte")
-st.write("Déposez votre fichier audio pour obtenir une transcription en texte.")
+st.title("🎙️ Transcription de votre visite audio en texte")
+st.write("Déposez votre fichier conversation audio pour obtenir une transcription en texte, que vous pourrez ensuite synthétiser et structurer avec un prompt GPT.")
 
 # 📂 Upload du fichier audio
 uploaded_file = st.file_uploader("Choisissez un fichier audio (MP3, WAV, M4A, etc.)", type=["mp3", "wav", "m4a"])
@@ -50,6 +50,7 @@ if uploaded_file is not None:
         file_path = temp_file.name
 
     st.success("✅ Fichier bien reçu ! Début de la transcription...")
+    st.warning("⚠️ Attention : La transcription peut durer plusieurs minutes en fonction de la taille du fichier.\n\nExemple : 15/20 minutes pour un fichier de 30 Mo (soit 1h de discussion). Merci de bien vouloir garder cette page ouverte jusqu'à l'affichage et le téléchargement de la transcription.")
 
     # 🎤 Transcrire l'audio
     try:
