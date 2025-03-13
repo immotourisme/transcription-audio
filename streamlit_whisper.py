@@ -1,76 +1,77 @@
 import os
-import asyncio
 import streamlit as st
 import whisper
 import tempfile
+import ffmpeg
 import shutil
 
-# 🔄 Fixe le problème "no running event loop" sur Streamlit Cloud
-async def fix_asyncio():
+# Vérification de FFmpeg
+if not shutil.which("ffmpeg"):
+    st.error("❌ FFmpeg n'est pas installé. Merci de l'ajouter aux dépendances.")
+    st.stop()
+
+# Fonction de conversion en WAV pour éviter les erreurs de format
+def convert_to_wav(input_path):
+    output_path = input_path.rsplit(".", 1)[0] + ".wav"
     try:
-        asyncio.get_running_loop()
-    except RuntimeError:
-        asyncio.set_event_loop(asyncio.new_event_loop())
+        ffmpeg.input(input_path).output(output_path, format="wav").run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+        return output_path
+    except Exception as e:
+        st.error(f"❌ Erreur lors de la conversion du fichier audio : {e}")
+        return None
 
-asyncio.run(fix_asyncio())
+# Fonction de transcription
+def transcrire_audio(fichier_audio, modele="medium", langue="fr"):
+    """
+    Transcrit un fichier audio en texte avec Whisper.
+    """
+    # Chargement du modèle Whisper
+    st.info(f"🔄 Chargement du modèle Whisper ({modele})...")
+    model = whisper.load_model(modele)
 
-# 🔧 Vérification et installation de FFmpeg sur Streamlit Cloud
-def install_ffmpeg():
-    if not shutil.which("ffmpeg"):
-        st.warning("⚠️ FFmpeg non trouvé. Installation en cours...")
-        os.system("apt-get update && apt-get install -y ffmpeg")
-        if shutil.which("ffmpeg"):
-            st.success("✅ FFmpeg installé avec succès !")
-        else:
-            st.error("❌ Échec de l'installation de FFmpeg. Contactez le support.")
-            st.stop()
+    # Transcription
+    st.info("🎙️ Transcription en cours... Cela peut prendre plusieurs minutes.")
+    resultat = model.transcribe(fichier_audio, language=langue)
 
-install_ffmpeg()
+    return resultat["text"]
 
-# 🎤 Chargement du modèle Whisper
-@st.cache_resource
-def load_model():
-    return whisper.load_model("tiny").to("cpu")  # Modèle allégé pour éviter les crashs
+# Interface utilisateur Streamlit
+st.title("🎙️ Transcription Audio en Texte")
+st.write("Déposez votre fichier audio pour obtenir une transcription en texte.")
 
-# Charger le modèle
-model = load_model()
-# st.write("✅ Modèle Whisper chargé avec succès !")
-
-# 🎙️ Interface utilisateur
-st.title("🎙️ Transcription de votre visite audio en texte")
-st.write("Déposez votre fichier conversation audio pour obtenir une transcription en texte, que vous pourrez ensuite synthétiser et structurer avec un prompt GPT.")
-
-# 📂 Upload du fichier audio
+# Upload du fichier
 uploaded_file = st.file_uploader("Choisissez un fichier audio (MP3, WAV, M4A, etc.)", type=["mp3", "wav", "m4a"])
 
 if uploaded_file is not None:
-    # 🔧 Création d'un fichier temporaire
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".m4a") as temp_file:
         temp_file.write(uploaded_file.getbuffer())
         file_path = temp_file.name
 
     st.success("✅ Fichier bien reçu ! Début de la transcription...")
-    st.warning("⚠️ Attention : La transcription peut durer plusieurs minutes en fonction de la taille du fichier.\n\nExemple : 15/20 minutes pour un fichier de 30 Mo (soit 1h de discussion). Merci de bien vouloir garder cette page ouverte jusqu'à l'affichage et le téléchargement de la transcription.")
+    st.warning("⚠️ Attention : La transcription peut prendre plusieurs minutes en fonction de la taille du fichier. \n\nExemple : 15/20 minutes pour un fichier de 30 Mo (soit 1h de discussion). Merci de bien vouloir garder cette page ouverte.")
 
-    # 🎤 Transcrire l'audio
+    # Conversion en WAV
+    file_path = convert_to_wav(file_path)
+    if file_path is None:
+        st.stop()
+
+    # Lancer la transcription
     try:
-        resultat = model.transcribe(file_path, language="fr")
-        transcription = resultat["text"]
+        transcription = transcrire_audio(file_path, modele="medium", langue="fr")
 
-        # 📄 Affichage du texte transcrit
+        # Affichage du texte
         st.subheader("📝 Résultat de la transcription :")
         st.text_area("Texte transcrit", transcription, height=300)
 
-        # 📥 Téléchargement du texte
+        # Option pour télécharger le fichier
         st.download_button(
             label="📥 Télécharger la transcription",
             data=transcription,
             file_name="transcription.txt",
             mime="text/plain"
         )
-
     except Exception as e:
         st.error(f"❌ Une erreur est survenue : {e}")
 
-    # 🧹 Nettoyage du fichier temporaire
+    # Nettoyage des fichiers temporaires
     os.remove(file_path)
