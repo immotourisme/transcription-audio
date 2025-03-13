@@ -1,4 +1,4 @@
 streamlit
-torch==2.0.1
+torch==2.6.0  # Version compatible avec Python 3.12
 git+https://github.com/openai/whisper.git
-ffmpeg
+ffmpeg-python
