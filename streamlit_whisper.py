@@ -2,19 +2,19 @@ import os
 import streamlit as st
 import whisper
 import tempfile
-import ffmpeg
 import shutil
+import ffmpeg as ffmpeg_lib  # Correction ici pour éviter les conflits avec le mauvais module
 
 # Vérification de FFmpeg
 if not shutil.which("ffmpeg"):
     st.error("❌ FFmpeg n'est pas installé. Merci de l'ajouter aux dépendances.")
     st.stop()
 
-# Fonction de conversion en WAV pour éviter les erreurs de format
+# Fonction pour convertir en WAV
 def convert_to_wav(input_path):
     output_path = input_path.rsplit(".", 1)[0] + ".wav"
     try:
-        ffmpeg.input(input_path).output(output_path, format="wav").run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+        ffmpeg_lib.input(input_path).output(output_path, format="wav").run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
         return output_path
     except Exception as e:
         st.error(f"❌ Erreur lors de la conversion du fichier audio : {e}")
