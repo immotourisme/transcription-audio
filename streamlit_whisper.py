@@ -14,10 +14,18 @@ async def fix_asyncio():
 
 asyncio.run(fix_asyncio())
 
-# 🔧 Vérification de FFmpeg
-if not shutil.which("ffmpeg"):
-    st.error("❌ Erreur : FFmpeg n'est pas installé.")
-    st.stop()
+# 🔧 Vérification et installation de FFmpeg sur Streamlit Cloud
+def install_ffmpeg():
+    if not shutil.which("ffmpeg"):
+        st.warning("⚠️ FFmpeg non trouvé. Installation en cours...")
+        os.system("apt-get update && apt-get install -y ffmpeg")
+        if shutil.which("ffmpeg"):
+            st.success("✅ FFmpeg installé avec succès !")
+        else:
+            st.error("❌ Échec de l'installation de FFmpeg. Contactez le support.")
+            st.stop()
+
+install_ffmpeg()
 
 # 🎤 Chargement du modèle Whisper
 @st.cache_resource
