@@ -10,16 +10,13 @@ try:
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
 
-# 🛠️ Désactiver le mode "watch" de Streamlit pour éviter les erreurs de redémarrage
-st.set_option('server.runOnSave', False)
-
 # ✅ Vérification de Streamlit
 st.write("✅ Streamlit fonctionne bien !")
 
 # 🚀 Chargement du modèle Whisper
 @st.cache_resource
 def load_model():
-    return whisper.load_model("tiny").to("cpu")  # Test avec le modèle "tiny" sur CPU
+    return whisper.load_model("tiny").to("cpu")  # Utilisation du modèle "tiny" pour éviter les problèmes de mémoire
 
 # Charger le modèle
 model = load_model()
