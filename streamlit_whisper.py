@@ -1,17 +1,22 @@
 import os
-import streamlit as st
 import asyncio
+import streamlit as st
 import whisper
 import tempfile
 import shutil
 
-st.set_page_config(page_title="Transcription Audio", layout="wide")
+# 🔧 Désactiver le watcher de Streamlit pour éviter les erreurs avec Torch
+os.environ["TORCH_HOME"] = "/tmp"
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"  # Évite les erreurs GPU sur Mac
 
 # 🔄 Correction asyncio
 try:
     asyncio.get_running_loop()
 except RuntimeError:
     asyncio.set_event_loop(asyncio.new_event_loop())
+
+# 🔧 Désactiver le mode debug de Streamlit
+st.set_page_config(page_title="Transcription Audio", layout="wide")
 
 # ⚠️ Vérifier la présence de FFmpeg
 if not shutil.which("ffmpeg"):
