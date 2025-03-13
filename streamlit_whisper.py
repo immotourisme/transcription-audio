@@ -5,7 +5,7 @@ import whisper
 import tempfile
 import shutil
 
-# 🔧 Correction asyncio pour éviter "RuntimeError: no running event loop"
+# 🔄 Fixe le problème "no running event loop" sur Streamlit Cloud
 async def fix_asyncio():
     try:
         asyncio.get_running_loop()
@@ -14,21 +14,15 @@ async def fix_asyncio():
 
 asyncio.run(fix_asyncio())
 
-# 🔧 Configuration de la page
-st.set_page_config(page_title="Transcription Audio", layout="wide")
-
-# 🎤 Vérification de FFmpeg
+# 🔧 Vérification de FFmpeg
 if not shutil.which("ffmpeg"):
     st.error("❌ Erreur : FFmpeg n'est pas installé.")
     st.stop()
 
-# ✅ Vérification de Streamlit
-st.write("✅ Streamlit fonctionne bien !")
-
-# 🚀 Chargement du modèle Whisper
+# 🎤 Chargement du modèle Whisper
 @st.cache_resource
 def load_model():
-    return whisper.load_model("tiny").to("cpu")  # Utilisation du modèle Tiny pour éviter les crashs mémoire
+    return whisper.load_model("tiny").to("cpu")  # Modèle allégé pour éviter les crashs
 
 # Charger le modèle
 model = load_model()
