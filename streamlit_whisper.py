@@ -5,8 +5,6 @@ import whisper
 import tempfile
 import shutil
 
-# 🔧 Désactiver le watcher de Streamlit pour éviter les erreurs avec Torch
-os.environ["TORCH_HOME"] = "/tmp"  
 st.set_page_config(page_title="Transcription Audio", layout="wide")
 
 # 🔄 Correction asyncio
